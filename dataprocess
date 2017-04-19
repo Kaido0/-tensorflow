@@ -1,0 +1,132 @@
+# -*- coding:utf-8 -*-
+#批量更改图像名称
+
+import os
+import cv2
+import time
+import string
+import numpy as np
+from PIL import Image
+
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+
+#图像改名
+def changeImgName(path):
+    index=200
+    path = 'C2_t2'
+    files = os.listdir(path)
+    for name in files:
+        if 'test' in name:
+            oldname = os.path.join(path, name)
+            (shotname, extension) = os.path.splitext(name)
+            nnn=string.atoi(shotname.split('test')[1])
+            new=nnn+index
+            newfile='test'+u'%d'%(new)+extension
+            newname=os.path.join(path,newfile)
+            os.rename(oldname,newname)
+            continue
+        (shotname, extension) = os.path.splitext(name)
+        oldname = os.path.join(path, name)
+        nnn=string.atoi(shotname)
+        new=index+nnn
+        newfile=u'%d'%(new)+extension
+        newname=os.path.join(path,newfile)
+        os.rename(oldname,newname)
+
+#制作二分类的图像
+def makeMask():
+    data_path = 'data30c_3'
+    # img = cv2.imread("26.bmp",cv2.IMREAD_GRAYSCALE)
+    images = os.listdir(data_path)
+    # total=len(images)/2
+    for image_name in images:
+        if 'test' in image_name:
+            continue
+        image = os.path.join(data_path, image_name)
+        img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+        for i in range(383):
+            for j in range(383):
+                if img[i][j] !=170:
+                    img[i][j] = 0
+                else :
+                    img[i][j]=255
+
+        image = os.path.join(data_path, image_name)
+        cv2.imwrite(image, img)
+        # cv2.imshow("",img)
+        # cv2.waitKey(0)
+
+#显示图像
+def showImg():
+    data_path = 'data30c_2crop'
+    image_name=os.path.join(data_path,'test173.bmp')
+    img = mpimg.imread(image_name)
+    imgplot = plt.imshow(img)
+    plt.show()
+
+
+
+def crop():
+    data_path = 'data30c'
+    images = os.listdir(data_path)
+    for image_name in images:
+        if 'test' in image_name:
+            continue
+        image = os.path.join(data_path, image_name)
+        img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+        crop_img = img[90:300,28:295]
+        cv2.imwrite(image, crop_img)
+
+
+
+#制作训练label的txt，把像素点都存到txt中
+def makelabeltxt():
+    if not os.path.exists('data30ctxt/'):
+        txtpath = os.mkdir('data30ctxt/')
+    else:
+        txtpath='data30ctxt/'
+    data_path = 'data30c'
+    images = os.listdir(data_path)
+    count=0
+    for image_name in images:
+        if 'test' in image_name:
+            continue
+        print image_name
+        count+=1
+        imgname=image_name.split('.bmp')[0]
+        image = os.path.join(data_path, image_name)
+        img = np.array(Image.open(image).convert('L'))
+        rows, cols = img.shape
+        for i in range(rows):
+            for j in range(cols):
+                if (img[i,j] == 85):
+                    img[i,j] = 1
+                elif (img[i,j] == 170):
+                    img[i,j] = 2
+                elif (img[i,j] == 255):
+                    img[i,j] = 3
+                else:
+                    img[i,j] = 0
+        np.savetxt(txtpath+imgname+".txt", img, fmt="%d")
+
+#保存训练数据的名字
+def savetrainName():
+    data_path='data30c'
+    f=open('train.txt','w')
+    images=os.listdir(data_path)
+    for image_name in images:
+        imname=image_name.split('.')[0]
+        f.write(imname+'\n')
+
+    f.close()
+
+
+time.clock()
+#changeImgName(path)
+#makeMask()
+#crop()
+#showImg()
+savetrainName()
+print('程序运行耗时:%0.2f'%(time.clock()))
