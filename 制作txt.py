@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+"""
+制作类似于mnist.csv一样的数据集
+最左列：label
+784个像素点依次排在后
+"""
 import os
 import scipy as scp
 import scipy.misc
@@ -9,6 +15,8 @@ import pandas as pd
 from PIL import Image
 
 path = os.getcwd()
+
+#先根据文件夹进行分类，改名
 def pre():
     list=os.listdir(path)
     for file in list:
@@ -62,7 +70,8 @@ def maketxt():
             # plt.show()
     np.savetxt(path + "data.txt", data, fmt="%f")
     print "done"
-
+    
+#显示第c张图像
 def readtxt():
     data = np.loadtxt(path + "data.txt")
     print data.shape
